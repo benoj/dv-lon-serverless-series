@@ -1,0 +1,42 @@
+Resources:
+  NatGateway:
+    Type: AWS::EC2::NatGateway
+    DependsOn: NatElasicIP
+    Properties:
+      AllocationId:
+        Fn::GetAtt: [NatElasicIP, AllocationId]
+      SubnetId:
+        Ref: PublicSubnet
+  NatElasicIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      Domain: vpc
+  PrivateSubnetRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+  NatRoute:
+    Type: AWS::EC2::Route
+    DependsOn: NatGateway
+    Properties:
+      RouteTableId:
+        Ref: PrivateSubnetRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId:
+        Ref: NatGateway
+  PrivateSubnetARouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnetA
+      RouteTableId:
+        Ref: PrivateSubnetRouteTable
+  PrivateSubnetBRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PrivateSubnetB
+      RouteTableId:
+        Ref: PrivateSubnetRouteTable
+  

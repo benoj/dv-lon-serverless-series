@@ -1,0 +1,84 @@
+Resources:
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    DependsOn: VPC
+    Properties:
+      VpcId:
+        Ref: VPC
+      CidrBlock: 10.0.10.0/24
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId:
+        Ref: VPC
+      InternetGatewayId:
+        Ref: InternetGateway
+  PublicSubnetRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:
+        Ref: VPC
+  PublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: AttachGateway
+    Properties:
+      RouteTableId:
+        Ref: PublicSubnetRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId:
+        Ref: InternetGateway
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: PublicSubnet
+      RouteTableId:
+        Ref: PublicSubnetRouteTable
+  PublicInstanceSG:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      VpcId:
+        Ref: VPC
+      GroupDescription: Enable SSH access via port 22
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: ${self:custom.ips.dv_london_office}
+        - IpProtocol: tcp
+          FromPort: "22"
+          ToPort: "22"
+          CidrIp: ${self:custom.ips.bcg_europe_vpn}
+        - IpProtocol: tcp
+          FromPort: "3306"
+          ToPort: "3306"
+          CidrIp: ${self:custom.ips.dv_london_office}
+        - IpProtocol: tcp
+          FromPort: "3306"
+          ToPort: "3306"
+          CidrIp: ${self:custom.ips.bcg_europe_vpn}
+  LinuxBastionHost:
+    Type: AWS::EC2::Instance
+    DependsOn:
+      - AttachGateway
+      - PublicSubnet
+      - PublicInstanceSG
+    Properties:
+      KeyName: simple-${self:provider.stage}-keypair
+      ImageId: ami-00035f41c82244dab
+      InstanceType: t2.micro
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          Description: ENI for bastion host
+          AssociatePublicIpAddress: true
+          SubnetId:
+            Ref: PublicSubnet
+          GroupSet:
+            - Ref: PublicInstanceSG
+  EIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId:
+        Ref: LinuxBastionHost

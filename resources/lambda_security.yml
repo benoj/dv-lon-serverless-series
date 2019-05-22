@@ -1,0 +1,8 @@
+Resources:
+  LambdaSecurityGroup:
+    DependsOn: VPC
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SecurityGroup for the Lambda Functions
+      VpcId:
+        Ref: VPC

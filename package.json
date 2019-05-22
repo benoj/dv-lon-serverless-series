@@ -1,0 +1,22 @@
+{
+  "name": "simple-api",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "jest": "^24.8.0",
+    "serverless-offline": "^4.10.0"
+  },
+  "scripts": {
+    "start": "serverless offline",
+    "db:start": "docker-compose up -d",
+    "db:migrate": "serverless invoke local --function migrate",
+    "test": "jest"
+  },
+  "dependencies": {
+    "app-root-path": "^2.2.1",
+    "mysql2": "^1.6.5",
+    "sequelize": "^5.8.6",
+    "umzug": "^2.2.0"
+  }
+}

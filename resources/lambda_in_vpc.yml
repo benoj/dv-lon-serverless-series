@@ -1,0 +1,5 @@
+securityGroupIds:
+  - "Fn::GetAtt": LambdaSecurityGroup.GroupId
+subnetIds:
+  - Ref: PrivateSubnetA
+  - Ref: PrivateSubnetB
